@@ -1,63 +1,92 @@
 # PokéToken Windows
 
-Codex로 코딩하는 동안 알이 부화하고 포켓몬이 진화하는 **Windows용 로컬 동반자 앱**입니다.
+Hatch an egg, evolve your Pokémon, and build a collection while you work with Codex on Windows.
 
-이 프로젝트는 [chattymin/PokeTokenBar](https://github.com/chattymin/PokeTokenBar)의 아이디어에서 영감을 받아 별도로 구현한 비공식 Windows MVP입니다. 원본 앱의 Windows 포트나 공식 배포판이 아니며, 원본 소스 코드를 포함하지 않습니다.
+[한국어](README.ko.md) · [Download ZIP](https://github.com/Ezby/PokeToken-Windows/archive/refs/heads/main.zip) · [Tests](https://github.com/Ezby/PokeToken-Windows/actions/workflows/test.yml)
 
-## 실행
+An independent, unofficial Windows MVP inspired by [chattymin/PokeTokenBar](https://github.com/chattymin/PokeTokenBar). This is a separate implementation with no original application source code included, and is not an official Windows port or Pokémon product.
 
-1. Windows 10/11에 [Node.js LTS](https://nodejs.org/)를 설치합니다. Node.js 22 이상이 필요합니다.
-2. 이 저장소를 ZIP으로 내려받고 **압축을 풉니다**. 쓰기 가능한 폴더에 두세요.
-3. `Start-PokeToken.cmd`를 더블클릭합니다.
-4. 브라우저에서 `http://127.0.0.1:32145`가 열립니다. Codex를 사용하면서 친구를 키워보세요.
+## Quick start
 
-추가 패키지 설치, API 키, 유료 API 호출은 필요하지 않습니다. 개발자 실행은 `npm start`, 검증은 `npm test`입니다.
+1. Install [Node.js LTS](https://nodejs.org/) on Windows 10 or 11. **Node.js 22 or newer** is required.
+2. [Download the ZIP](https://github.com/Ezby/PokeToken-Windows/archive/refs/heads/main.zip) and **extract it** to a writable folder.
+3. Double-click **`Start-PokeToken.cmd`**.
+4. Your browser opens **http://127.0.0.1:32145**. Use Codex and watch your companion grow.
 
-창을 닫아도 로컬 수집기는 실행 중입니다. PC를 다시 시작하면 종료되고, 다시 실행 파일을 열면 이어서 키울 수 있습니다. 수동 종료하려면 `Stop-PokeToken.ps1`을 PowerShell에서 실행하세요. 자동 시작 등록은 하지 않습니다.
+No npm dependencies, API keys, or paid API requests are required. The app interface is currently in Korean.
 
-## 성장 규칙
+The collector keeps running when you close the browser. Restarting Windows stops it; launching the app again resumes your progress. To stop it manually, run `Stop-PokeToken.ps1` in PowerShell. The app does not register itself to start at login.
 
-| 누적 토큰 | 변화 |
+## Features
+
+- Eggs that hatch with newly recorded Codex token usage.
+- Two evolutions, graduation, and a collection of graduated companions.
+- Bulbasaur, Charmander, and Squirtle evolution lines in sequence.
+- Automatic usage refresh every 15 seconds, plus a manual **↻** button.
+- Local automatic saves with a previous-save backup.
+
+This MVP runs in a browser with a local Node.js server. Floating desktop pets, a system tray interface, shops, shiny variants, and the original application's 649-species Pokédex are outside its current scope.
+
+## Growth
+
+| Tokens earned for the current companion | Milestone |
 | --- | --- |
-| 0 | 이상해씨의 알로 시작 |
-| 20,000 | 부화 |
-| 100,000 | 첫 진화 |
-| 250,000 | 최종 진화 |
-| 400,000 | 졸업 버튼 활성화 |
+| 0 | Start with a Bulbasaur egg |
+| 20,000 | Hatch |
+| 100,000 | First evolution |
+| 250,000 | Final evolution |
+| 400,000 | Graduation available |
 
-졸업한 친구는 컬렉션에 남습니다. 새 알은 이상해씨 → 파이리 → 꼬부기 순으로 돌아갑니다. 졸업할 때 현재 육성 토큰은 0으로 돌아가며 초과분은 이월되지 않습니다. 지금까지 함께 쌓은 전체 토큰은 유지됩니다.
+Click **졸업하고 새 알 만나기 →** to graduate your companion and receive a new egg. Graduates remain in your collection. Eggs cycle through Bulbasaur → Charmander → Squirtle.
 
-앱 첫 실행 때 기존 로그를 기준점으로 잡고, **그 이후 추가되는 토큰**만 성장에 반영합니다. 입력·출력 토큰을 합산하며 캐시된 입력은 입력에 포함된 만큼만 계산합니다. 추론 토큰을 출력에 다시 더하지 않습니다. 가격이나 결제 금액을 계산하는 앱은 아닙니다.
+Graduation resets the current companion's growth to zero; excess growth does not carry over. Your lifetime token total is retained.
 
-## 데이터와 개인정보
+On first launch, existing session history establishes a baseline. **Only newly recorded tokens count toward growth.** Input and output tokens are counted. Cached input counts only as already included in input usage; reasoning tokens are not added again on top of output usage. The app does not calculate charges.
 
-- 기본 읽기 위치: `%USERPROFILE%\.codex\sessions\**\*.jsonl`. `CODEX_HOME`이 있으면 그 안의 `sessions`를 읽습니다.
-- Codex의 로컬 `event_msg / token_count` 이벤트를 15초마다 확인합니다. 현재 스키마를 기준으로 구현했으므로 향후 로그 형식 변경에 대응이 필요할 수 있습니다.
-- 대화 파일을 로컬에서 읽지만 토큰 이벤트만 처리합니다. 대화 내용, 계정 토큰, 인증 파일은 저장하거나 전송하지 않습니다.
-- 앱은 `127.0.0.1`에만 바인딩하며 외부에서 접속할 수 없습니다.
-- 스프라이트는 PokeAPI의 GitHub 저장소에서 브라우저로 가져옵니다. 이 요청에는 포켓몬 번호가 포함되며 일반적인 접속 정보가 GitHub에 전달됩니다. 이미지가 로드되지 않아도 성장과 저장은 동작합니다.
-- 진행도, 컬렉션, 파일 경로·읽기 위치·토큰 카운터를 앱 폴더의 `data/save.json`에 저장합니다. 직전 저장 파일은 `data/save.json.bak`에 보관합니다. 훼손된 저장 파일은 자동으로 덮어쓰지 않습니다.
-- `data/` 전체는 Git에서 제외됩니다. **저장 파일이나 개인 세션 로그를 공개하지 마세요.**
+## Privacy and saves
 
-로그가 없는 경우 앱은 연결 대기 상태로 동작합니다. 첫 전체 스캔은 기록량에 따라 시간이 걸릴 수 있습니다. 다른 PC로 옮길 때는 소스만 공유하고 각자 새로 시작하는 것을 권장합니다. 여러 복사본을 동시에 실행하거나 저장 폴더를 공유하지 마세요.
+- Default log location: `%USERPROFILE%\.codex\sessions\**\*.jsonl`. With `CODEX_HOME` set, its `sessions` subdirectory is used instead.
+- The collector reads local `event_msg / token_count` events. Conversation text, account credentials, and authentication files are not saved or transmitted.
+- The server listens on **127.0.0.1 only**, not your network interfaces.
+- Sprites load directly in your browser from [PokeAPI/sprites](https://github.com/PokeAPI/sprites). GitHub receives ordinary image-request information and the Pokémon number. Growth and saving work without images.
+- Progress, collection entries, log paths, read offsets, and counters are stored in `data/save.json`. The previous save is kept as `data/save.json.bak`.
+- An unreadable save is preserved. With the collector stopped, restore a valid backup by copying `save.json.bak` to `save.json`.
+- `data/` is ignored by Git. Keep saves and personal session logs private.
 
-## 현재 범위
+Use a writable folder and run only one copy at a time.
 
-알 부화, 두 번의 진화, 졸업, 세 계열의 컬렉션, 로컬 자동 저장, Codex 사용량 연동을 제공합니다. 브라우저에서 열리는 앱이며 바탕화면 위에 떠다니는 캐릭터, 작업표시줄 트레이, 상점, 반짝이, 원본의 649종 도감은 포함하지 않습니다.
+## Troubleshooting
 
-로컬 로그 기준이므로 공식 사용량·과금 수치와 다를 수 있습니다. 삭제된 로그는 새 토큰을 만들지 않습니다. 과거 로그를 실행 도중 새로 복사해 넣으면 해당 로그의 토큰이 추가 사용량으로 잡힐 수 있습니다.
+**No connected sessions:** Use Codex locally and check that session logs exist in the expected directory. Set a custom `CODEX_HOME` before launching if needed. Cloud-only activity without local logs is not tracked.
 
-## GitHub에 공개하기
+**Slow first launch:** The initial scan reads existing history to establish a baseline. Later scans read appended records.
 
-이 폴더가 저장소 루트입니다. `data/`는 업로드하지 마세요. GitHub의 새 공개 저장소에 이 폴더의 소스 파일을 올리면 다른 사람도 ZIP으로 받아 실행할 수 있습니다. Node.js 실행에 필요한 npm 의존성은 없습니다.
+**Usage differs from official totals:** Growth uses local session events, not billing or quota APIs. Log-format changes may require updates. Copying old logs into the directory while the app runs can count those records as newly discovered usage.
 
-변경을 제안할 때는 `npm test`를 실행하고, 실제 개인 로그 대신 테스트용 합성 이벤트를 사용해 주세요.
+**Port conflict:** The default port is 32145. Stop the conflicting app, or launch `server.mjs` directly with `POKETOKEN_PORT` set and open the matching URL. The double-click launcher and stop script use the default port.
 
-## 출처와 라이선스
+## Development and contributions
 
-- 독립 구현 코드: MIT (`LICENSE`).
-- 아이디어: [PokeTokenBar — chattymin](https://github.com/chattymin/PokeTokenBar).
-- 스프라이트 제공 경로: [PokeAPI/sprites](https://github.com/PokeAPI/sprites). 스프라이트를 이 저장소에 재배포하지 않습니다.
-- Pokémon 및 관련 캐릭터·상표·그래픽의 권리는 Nintendo / Creatures / GAME FREAK 등 각 권리자에게 있습니다. 코드의 MIT 라이선스는 해당 자산이나 상표에 대한 권리를 부여하지 않습니다.
+```sh
+npm start
+npm test
+```
 
-공식 Pokémon 제품 또는 원본 개발자의 공식 Windows 버전이 아닙니다.
+No dependency installation is needed. Tests cover growth stages, token parsing, incremental reads, partial writes, repeated events, counter resets, first-launch baselines, graduation, save restoration, and origin checks. GitHub Actions runs tests on Windows with Node.js 22.
+
+| Environment variable | Purpose |
+| --- | --- |
+| `CODEX_HOME` | Codex directory containing `sessions/` |
+| `POKETOKEN_DATA_DIR` | Override the save directory |
+| `POKETOKEN_PORT` | Override the port when launching the server directly |
+
+Contributions and bug reports are welcome. Use synthetic token events in tests and remove personal paths, conversations, and credentials from reports.
+
+## Credits and license
+
+- Inspiration: [PokeTokenBar by chattymin](https://github.com/chattymin/PokeTokenBar).
+- Sprite delivery: [PokeAPI/sprites](https://github.com/PokeAPI/sprites). Sprites are not redistributed in this repository.
+- Independent application code: [MIT](LICENSE).
+- Pokémon characters, names, trademarks, and graphics belong to their respective owners, including Nintendo, Creatures, and GAME FREAK. The code license does not grant rights to those assets or trademarks.
+
+Not affiliated with or endorsed by those rights holders or the original PokeTokenBar developer.
