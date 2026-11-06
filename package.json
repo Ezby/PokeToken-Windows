@@ -1,0 +1,10 @@
+{
+  "name": "poketoken-windows",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A local, unofficial Pokemon companion that grows with Codex token usage on Windows",
+  "type": "module",
+  "scripts": { "start": "node server.mjs", "test": "node --test" },
+  "engines": { "node": ">=22" },
+  "license": "MIT"
+}
