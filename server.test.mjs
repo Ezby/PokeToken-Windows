@@ -38,12 +38,16 @@ test('real server baselines history, grows, graduates, and restores without reco
     assert.equal((await post('/api/graduate')).status, 409);
     await appendFile(log, event(450000));
     state = await (await post('/api/refresh')).json();
-    assert.equal(state.growth, 400000); assert.equal(state.stage.level, 4);
+    assert.equal(state.stage.id, null);
+    assert.equal((await post('/api/graduate')).status, 409);
+    await appendFile(log, event(100050000));
+    state = await (await post('/api/refresh')).json();
+    assert.equal(state.growth, 100000000); assert.equal(state.stage.level, 4);
     state = await (await post('/api/graduate')).json();
     assert.equal(state.collection[0].id, 3); assert.equal(state.growth, 0); assert.equal(state.line, 1);
     await stop(); await start();
     state = await (await fetch(origin + '/api/state')).json();
-    assert.equal(state.total, 400000); assert.equal(state.collection.length, 1); assert.equal(state.growth, 0);
+    assert.equal(state.total, 100000000); assert.equal(state.collection.length, 1); assert.equal(state.growth, 0);
     assert.equal((await fetch(origin + '/data/save.json')).status, 404);
     assert.equal((await fetch(origin + '/')).status, 200);
   } finally {

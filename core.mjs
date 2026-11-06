@@ -6,7 +6,16 @@ export const LINES = [
   { name: '파이리', ids: [4, 5, 6], names: ['파이리', '리자드', '리자몽'] },
   { name: '꼬부기', ids: [7, 8, 9], names: ['꼬부기', '어니부기', '거북왕'] },
 ];
-export const TARGETS = [20000, 100000, 250000, 400000];
+export const TARGETS = [5_000_000, 25_000_000, 62_500_000, 100_000_000];
+export const BALANCE_VERSION = 2;
+
+// Retain stage progress from the original, much faster 1/250-scale curve.
+export function migrateBalance(state) {
+  if ((state.balanceVersion ?? 1) >= BALANCE_VERSION) return false;
+  state.growth = Math.min(state.growth, 400_000) * 250;
+  state.balanceVersion = BALANCE_VERSION;
+  return true;
+}
 
 export function tokenTotal(line) {
   try {

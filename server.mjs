@@ -3,7 +3,7 @@ import path from 'node:path';
 import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { mkdir, readFile, writeFile, rename, copyFile } from 'node:fs/promises';
-import { scanUsage, stage, LINES } from './core.mjs';
+import { scanUsage, stage, LINES, TARGETS, BALANCE_VERSION, migrateBalance } from './core.mjs';
 
 const base = path.dirname(fileURLToPath(import.meta.url));
 const dataDir = process.env.POKETOKEN_DATA_DIR || path.join(base, 'data');
@@ -19,9 +19,10 @@ catch (error) {
     console.error('Save could not be read. Original file preserved. Restore data/save.json.bak if needed.');
     process.exit(1);
   }
-  state = { version: 1, initialized: false, growth: 0, line: 0, collection: [], cache: {}, total: 0, started: new Date().toISOString() };
+  state = { version: 1, balanceVersion: BALANCE_VERSION, initialized: false, growth: 0, line: 0, collection: [], cache: {}, total: 0, started: new Date().toISOString() };
 }
 if (state.version !== 1 || !Number.isSafeInteger(state.growth) || !state.cache || !Array.isArray(state.collection)) throw new Error('Unsupported save format');
+if (migrateBalance(state)) await copyFile(savePath, path.join(dataDir, 'save.pre-balance-v2.json'));
 let status = { files: 0, error: null, updated: null };
 async function save() {
   try { await copyFile(savePath, savePath + '.bak'); } catch (e) { if (e.code !== 'ENOENT') throw e; }
@@ -44,7 +45,7 @@ function refresh() {
   return busy;
 }
 function view() { return { app: 'poketoken-windows', growth: state.growth, total: state.total, line: state.line, collection: state.collection,
-  stage: stage(state.growth, state.line), lines: LINES, ...status }; }
+  stage: stage(state.growth, state.line), targets: TARGETS, lines: LINES, ...status }; }
 const server = http.createServer(async (req, res) => {
   const json = (code, value) => { res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(value)); };
   if (req.headers.host !== `127.0.0.1:${port}`) return json(403, { error: 'Invalid host' });
@@ -55,7 +56,7 @@ const server = http.createServer(async (req, res) => {
       if (req.url === '/api/refresh') { await refresh(); return json(200, view()); }
       if (req.url === '/api/graduate') {
         await refresh();
-        if (state.growth < 400000) return json(409, { error: '아직 졸업할 수 없어요.' });
+        if (state.growth < TARGETS.at(-1)) return json(409, { error: '아직 졸업할 수 없어요.' });
         state.collection.push({ ...stage(state.growth, state.line), date: new Date().toISOString() });
         state.growth = 0; state.line = (state.line + 1) % LINES.length;
         await save(); return json(200, view());

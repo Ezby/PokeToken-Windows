@@ -32,14 +32,16 @@ This MVP runs in a browser with a local Node.js server. Floating desktop pets, a
 | Tokens earned for the current companion | Milestone |
 | --- | --- |
 | 0 | Start with a Bulbasaur egg |
-| 20,000 | Hatch |
-| 100,000 | First evolution |
-| 250,000 | Final evolution |
-| 400,000 | Graduation available |
+| 5,000,000 | Hatch |
+| 25,000,000 | First evolution |
+| 62,500,000 | Final evolution |
+| 100,000,000 | Graduation available |
 
 Click **졸업하고 새 알 만나기 →** to graduate your companion and receive a new egg. Graduates remain in your collection. Eggs cycle through Bulbasaur → Charmander → Squirtle.
 
 Graduation resets the current companion's growth to zero; excess growth does not carry over. Your lifetime token total is retained.
+
+Version 0.1.1 increases growth thresholds by 250× to better suit Codex input-token volumes. Growth depends on usage, so these thresholds do not guarantee a fixed duration. Upgrading preserves your current stage and its percentage, lifetime usage, and collection. Progress is rescaled once; this does not add tokens to lifetime usage. The original save is backed up to `data/save.pre-balance-v2.json`.
 
 On first launch, existing session history establishes a baseline. **Only newly recorded tokens count toward growth.** Input and output tokens are counted. Cached input counts only as already included in input usage; reasoning tokens are not added again on top of output usage. The app does not calculate charges.
 

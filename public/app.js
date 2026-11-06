@@ -18,7 +18,10 @@ function render(data) {
   $('files').textContent = fmt(data.files) + '개';
   $('status').textContent = data.error || (data.files ? `${new Date(data.updated).toLocaleTimeString('ko-KR')} 확인 · 연결됨` : 'Codex를 사용하면 세션이 자동으로 연결돼요.');
   $('graduate').hidden = s.level !== 4;
-  [...$('journey').children].forEach((el, i) => el.classList.toggle('active', i <= s.level));
+  [...$('journey').children].forEach((el, i) => {
+    el.classList.toggle('active', i <= s.level);
+    if (i > 0) el.querySelector('small').textContent = `${fmt(data.targets[i - 1])} tokens`;
+  });
   $('count').textContent = data.collection.length;
   if (data.collection.length) { $('collection').replaceChildren(...data.collection.map(p => { const el = document.createElement('div'); el.className = 'owned'; el.append(image(p.id, p.name)); const label = document.createElement('span'); label.textContent = p.name; el.append(label); return el; })); }
 }
