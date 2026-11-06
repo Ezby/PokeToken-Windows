@@ -1,12 +1,76 @@
+<div align="center">
+
 # PokéToken Windows
 
-Hatch an egg, evolve your Pokémon, and build a collection while you work with Codex on Windows.
+**Turn your everyday Codex sessions into a Pokémon companion.**
 
-[한국어](README.ko.md) · [Download ZIP](https://github.com/Ezby/PokeToken-Windows/archive/refs/heads/main.zip) · [Tests](https://github.com/Ezby/PokeToken-Windows/actions/workflows/test.yml)
+[![Windows](https://img.shields.io/badge/Windows-10%20%2F%2011-0078D4)](#install)
+[![Node.js](https://img.shields.io/badge/Node.js-22%2B-43853D)](https://nodejs.org/)
+[![Tests](https://github.com/Ezby/PokeToken-Windows/actions/workflows/test.yml/badge.svg)](https://github.com/Ezby/PokeToken-Windows/actions/workflows/test.yml)
+[![License](https://img.shields.io/badge/License-MIT-6B8E5A)](LICENSE)
 
-An independent, unofficial Windows MVP inspired by [chattymin/PokeTokenBar](https://github.com/chattymin/PokeTokenBar). This is a separate implementation with no original application source code included, and is not an official Windows port or Pokémon product.
+**English** · [한국어](README.ko.md)
 
-## Quick start
+[**Download for Windows ↓**](https://github.com/Ezby/PokeToken-Windows/archive/refs/heads/main.zip) · [Install](#install) · [How it works](#how-it-works) · [Tour](#tour)
+
+</div>
+
+PokéToken Windows is a **local companion app for people who use Codex on Windows**. It reads token usage from your local Codex sessions and turns that activity into progress: an egg hatches, your Pokémon evolves, and a fully grown companion joins your collection. Open the dashboard in your browser whenever you want to see how your little friend is doing.
+
+Keep working on your own projects. There is no separate game to grind, no API key to enter, and no extra model requests made by this app.
+
+<p align="center">
+  <img src="docs/images/home.jpg" width="760" alt="PokéToken Windows dashboard showing Bulbasaur, growth progress, Codex token usage, growth milestones, and a collection of graduated Pokémon">
+  <br>
+  <sub>Actual app UI with sample data. The interface is currently in Korean; setup and feature explanations below are in English.</sub>
+</p>
+
+## Why keep a companion?
+
+- **Give your coding sessions a little personality.** Come back to a growing friend after working with Codex.
+- **See your progress at a glance.** Your companion, recorded tokens, next milestone, and collection share one dashboard.
+- **Keep it simple and local.** No account for this app, no npm dependencies, and automatic saves on your computer.
+
+## How it works
+
+1. 🥚 **Start with an egg.** Launch the app once to establish a baseline from your existing Codex session history.
+2. 💻 **Work with Codex as usual.** Newly recorded input and output tokens feed your companion. The dashboard refreshes every 15 seconds.
+3. 🌱 **Hatch and evolve.** Your companion moves through its real evolution line as you reach each growth milestone.
+4. 🎓 **Graduate and collect.** At the final milestone, choose to graduate your Pokémon. It stays in your collection while a new egg starts the next journey.
+
+The current roster cycles through **Bulbasaur → Charmander → Squirtle**, including both evolutions for each starter.
+
+## Tour
+
+<table>
+<tr>
+<td width="44%" align="center">
+<img src="docs/images/egg.jpg" width="320" alt="An egg at 40 percent hatch progress, with 3 million tokens remaining">
+</td>
+<td width="56%" valign="middle">
+<h3>🥚 A small beginning</h3>
+Your egg has a visible progress bar and a remaining-token count. New usage moves it toward hatching; later, the same card follows your Pokémon toward its next evolution. You can check in without interrupting your work.
+</td>
+</tr>
+<tr>
+<td colspan="2">
+<h3>📊 See the journey, not just a number</h3>
+The dashboard shows the total tokens recorded since you first launched the app, connected session-file count, and every milestone on the path to graduation. Use the <b>↻</b> button for a manual refresh. Existing history sets a baseline rather than instantly completing a new companion.
+</td>
+</tr>
+<tr>
+<td colspan="2">
+<h3>🎓 Keep the friends you have raised</h3>
+Graduation adds your final-form Pokémon to the collection below the dashboard. Your lifetime token total stays with you as a new egg begins.
+<br><br>
+<img src="docs/images/collection.jpg" width="760" alt="The collection panel with graduated Charizard and Blastoise">
+</td>
+</tr>
+</table>
+
+*Screenshots show the production UI using synthetic sample saves. They contain no personal session logs.*
+
+## Install
 
 1. Install [Node.js LTS](https://nodejs.org/) on Windows 10 or 11. **Node.js 22 or newer** is required.
 2. [Download the ZIP](https://github.com/Ezby/PokeToken-Windows/archive/refs/heads/main.zip) and **extract it** to a writable folder.
@@ -17,15 +81,9 @@ No npm dependencies, API keys, or paid API requests are required. The app interf
 
 The collector keeps running when you close the browser. Restarting Windows stops it; launching the app again resumes your progress. To stop it manually, run `Stop-PokeToken.ps1` in PowerShell. The app does not register itself to start at login.
 
-## Features
+### Supported in this release
 
-- Eggs that hatch with newly recorded Codex token usage.
-- Two evolutions, graduation, and a collection of graduated companions.
-- Bulbasaur, Charmander, and Squirtle evolution lines in sequence.
-- Automatic usage refresh every 15 seconds, plus a manual **↻** button.
-- Local automatic saves with a previous-save backup.
-
-This MVP runs in a browser with a local Node.js server. Floating desktop pets, a system tray interface, shops, shiny variants, and the original application's 649-species Pokédex are outside its current scope.
+This is a browser-based Windows companion for **local Codex session logs**. It does not currently include a floating desktop pet, system tray integration, other coding providers, shops, shiny variants, or the original project's full Pokédex. An independent implementation inspired by [chattymin/PokeTokenBar](https://github.com/chattymin/PokeTokenBar), it is not an official Windows port.
 
 ## Growth
 
@@ -87,7 +145,7 @@ Contributions and bug reports are welcome. Use synthetic token events in tests a
 ## Credits and license
 
 - Inspiration: [PokeTokenBar by chattymin](https://github.com/chattymin/PokeTokenBar).
-- Sprite delivery: [PokeAPI/sprites](https://github.com/PokeAPI/sprites). Sprites are not redistributed in this repository.
+- Sprite delivery: [PokeAPI/sprites](https://github.com/PokeAPI/sprites). The app requests sprites at runtime. Documentation screenshots show Pokémon imagery only to illustrate the app's functionality.
 - Independent application code: [MIT](LICENSE).
 - Pokémon characters, names, trademarks, and graphics belong to their respective owners, including Nintendo, Creatures, and GAME FREAK. The code license does not grant rights to those assets or trademarks.
 
