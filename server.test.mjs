@@ -36,6 +36,14 @@ test('real server baselines history, grows, graduates, and restores without reco
     assert.equal(state.total, 0); assert.equal(state.files, 1);
     assert.equal((await post('/api/refresh', { Origin: 'https://example.com' })).status, 403);
     assert.equal((await post('/api/graduate')).status, 409);
+    assert.equal((await post('/api/feed')).status, 409);
+    const quotaEvent = n => JSON.stringify({ timestamp: new Date().toISOString(), type: 'event_msg', payload: { type: 'token_count', info: { total_token_usage: { total_tokens: n } }, rate_limits: { limit_id: 'codex', primary: { used_percent: 100, window_minutes: 300, resets_at: Math.floor(Date.now() / 1000) + 3600 } } } }) + '\n';
+    const rewardRecord = quotaEvent(50000);
+    await appendFile(log, rewardRecord + rewardRecord);
+    state = await (await post('/api/refresh')).json();
+    assert.equal(state.berries, 1);
+    assert.equal((await post('/api/feed')).status, 409);
+    assert.equal((await post('/api/feed', { Origin: 'https://example.com' })).status, 403);
     await appendFile(log, event(450000));
     state = await (await post('/api/refresh')).json();
     assert.equal(state.stage.id, null);
@@ -43,8 +51,12 @@ test('real server baselines history, grows, graduates, and restores without reco
     await appendFile(log, event(100050000));
     state = await (await post('/api/refresh')).json();
     assert.equal(state.growth, 100000000); assert.equal(state.stage.level, 4);
+    state = await (await post('/api/feed')).json();
+    assert.equal(state.berries, 0); assert.equal(state.affection, 10);
+    assert.equal((await post('/api/feed')).status, 409);
     state = await (await post('/api/graduate')).json();
     assert.equal(state.collection[0].id, 3); assert.equal(state.growth, 0); assert.equal(state.line, 1);
+    assert.equal(state.collection[0].affection, 10); assert.equal(state.affection, 0);
     await stop(); await start();
     state = await (await fetch(origin + '/api/state')).json();
     assert.equal(state.total, 100000000); assert.equal(state.collection.length, 1); assert.equal(state.growth, 0);

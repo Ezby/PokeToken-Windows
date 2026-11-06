@@ -4,6 +4,7 @@ import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { mkdir, readFile, writeFile, rename, copyFile } from 'node:fs/promises';
 import { scanUsage, stage, LINES, TARGETS, BALANCE_VERSION, migrateBalance } from './core.mjs';
+import { initializeRewards, applyLimits, feedBerry } from './rewards.mjs';
 
 const base = path.dirname(fileURLToPath(import.meta.url));
 const dataDir = process.env.POKETOKEN_DATA_DIR || path.join(base, 'data');
@@ -23,28 +24,36 @@ catch (error) {
 }
 if (state.version !== 1 || !Number.isSafeInteger(state.growth) || !state.cache || !Array.isArray(state.collection)) throw new Error('Unsupported save format');
 if (migrateBalance(state)) await copyFile(savePath, path.join(dataDir, 'save.pre-balance-v2.json'));
+initializeRewards(state);
 let status = { files: 0, error: null, updated: null };
 async function save() {
   try { await copyFile(savePath, savePath + '.bak'); } catch (e) { if (e.code !== 'ENOENT') throw e; }
   await writeFile(savePath + '.tmp', JSON.stringify(state), 'utf8');
   await rename(savePath + '.tmp', savePath);
 }
+let writeQueue = Promise.resolve();
+function serial(task) {
+  const result = writeQueue.then(task);
+  writeQueue = result.catch(() => {});
+  return result;
+}
 let busy = null;
 function refresh() {
   if (busy) return busy;
-  busy = (async () => {
+  busy = serial(async () => {
     try {
-      const result = await scanUsage(root, state.cache);
+      const result = await scanUsage(root, state.cache, record => applyLimits(state, record));
       // Existing history establishes a baseline; new tokens feed this companion.
       if (state.initialized) { state.growth += result.delta; state.total += result.delta; }
       state.initialized = true;
       await save();
       status = { files: result.files, error: null, updated: new Date().toISOString() };
     } catch (error) { status.error = `사용량을 읽지 못했어요 (${error.code || '오류'}). 새로고침으로 다시 시도해 주세요.`; }
-  })().finally(() => { busy = null; });
+  }).finally(() => { busy = null; });
   return busy;
 }
 function view() { return { app: 'poketoken-windows', growth: state.growth, total: state.total, line: state.line, collection: state.collection,
+  berries: state.berries, affection: state.affection, limits: state.limits,
   stage: stage(state.growth, state.line), targets: TARGETS, lines: LINES, ...status }; }
 const server = http.createServer(async (req, res) => {
   const json = (code, value) => { res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(value)); };
@@ -54,12 +63,21 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'POST') {
       if (req.headers.origin !== origin) return json(403, { error: 'Invalid origin' });
       if (req.url === '/api/refresh') { await refresh(); return json(200, view()); }
+      if (req.url === '/api/feed') {
+        return await serial(async () => {
+          const error = feedBerry(state, Boolean(stage(state.growth, state.line).id));
+          if (error) return json(409, { error });
+          await save(); return json(200, view());
+        });
+      }
       if (req.url === '/api/graduate') {
         await refresh();
+        return await serial(async () => {
         if (state.growth < TARGETS.at(-1)) return json(409, { error: '아직 졸업할 수 없어요.' });
-        state.collection.push({ ...stage(state.growth, state.line), date: new Date().toISOString() });
-        state.growth = 0; state.line = (state.line + 1) % LINES.length;
+        state.collection.push({ ...stage(state.growth, state.line), affection: state.affection, date: new Date().toISOString() });
+        state.growth = 0; state.affection = 0; state.line = (state.line + 1) % LINES.length;
         await save(); return json(200, view());
+        });
       }
       return json(404, { error: 'Not found' });
     }

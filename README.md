@@ -37,6 +37,7 @@ Keep working on your own projects. There is no separate game to grind, no API ke
 2. 💻 **Work with Codex as usual.** Newly recorded input and output tokens feed your companion. The dashboard refreshes every 15 seconds.
 3. 🌱 **Hatch and evolve.** Your companion moves through its real evolution line as you reach each growth milestone.
 4. 🎓 **Graduate and collect.** At the final milestone, choose to graduate your Pokémon. It stays in your collection while a new egg starts the next journey.
+5. 🍓 **Earn berries and build friendship.** Reach a recorded Codex usage limit to earn berries, then feed your hatched companion to raise its friendship.
 
 The current roster cycles through **Bulbasaur → Charmander → Squirtle**, including both evolutions for each starter.
 
@@ -86,6 +87,18 @@ The collector keeps running when you close the browser. Restarting Windows stops
 This is a browser-based Windows companion for **local Codex session logs**. It does not currently include a floating desktop pet, system tray integration, other coding providers, shops, shiny variants, or the original project's full Pokédex. An independent implementation inspired by [chattymin/PokeTokenBar](https://github.com/chattymin/PokeTokenBar), it is not an official Windows port.
 
 ## Growth
+
+### Berries and friendship
+
+<p align="center"><img src="docs/images/berries.jpg" width="640" alt="Actual app with a berry bag containing 2 berries and friendship at 50 out of 100 after feeding"><br><sub>Actual UI with synthetic sample data after feeding one berry.</sub></p>
+
+The app awards **1 berry for a fully used 5-hour limit** and **5 berries for a fully used weekly limit**, once per quota bucket and reset timestamp. Repeated 100% events, refreshing, and restarting do not award the same reward again.
+
+Feed one berry to a hatched Pokémon to add **10 friendship**, up to **100**. Eggs cannot eat berries, and feeding at maximum friendship does not consume an item. Friendship is independent of token growth and has no growth bonus. It stays with a graduated companion in your collection; a new egg starts at zero. Berries carry over.
+
+Quota information comes from new Codex `token_count` events containing `rate_limits`; the app does not call quota APIs or request credentials. It shows the last recorded quota, not a live account reading. A reward requires an explicit 100% record with a valid future reset timestamp. Old records from before installing this feature and expired quota windows do not award berries. If Codex does not record the limit event locally, the app cannot detect it.
+
+### Token milestones
 
 | Tokens earned for the current companion | Milestone |
 | --- | --- |

@@ -54,7 +54,7 @@ export async function logFiles(root) {
 }
 
 // Cache byte offsets and only read appended bytes. Never store conversation text.
-export async function scanUsage(root, cache) {
+export async function scanUsage(root, cache, onRecord = () => {}) {
   const files = await logFiles(root);
   const active = new Set(files);
   for (const key of Object.keys(cache)) if (!active.has(key)) delete cache[key];
@@ -78,6 +78,7 @@ export async function scanUsage(root, cache) {
           pending = pending.subarray(split + 1);
           const total = tokenTotal(row.toString('utf8'));
           if (total === null) continue;
+          onRecord(JSON.parse(row.toString('utf8')));
           // A decreasing counter denotes a new usage segment after a reset.
           delta += total >= item.last ? total - item.last : total;
           item.last = total;

@@ -18,17 +18,27 @@ function render(data) {
   $('files').textContent = fmt(data.files) + '개';
   $('status').textContent = data.error || (data.files ? `${new Date(data.updated).toLocaleTimeString('ko-KR')} 확인 · 연결됨` : 'Codex를 사용하면 세션이 자동으로 연결돼요.');
   $('graduate').hidden = s.level !== 4;
+  $('berry-count').textContent = fmt(data.berries);
+  $('affection-value').textContent = `${data.affection} / 100`;
+  $('affection').value = data.affection;
+  $('feed').disabled = !s.id || data.berries < 1 || data.affection >= 100;
+  $('berry-help').textContent = !s.id ? '부화한 뒤 열매를 먹일 수 있어요.' : data.affection >= 100 ? '마음이 가득 찼어요! ♥' : '열매 1개를 주면 호감도가 10 올라요.';
+  for (const [slot, label] of [['primary', '5시간'], ['secondary', '주간']]) {
+    const quota = data.limits[slot];
+    const fresh = quota && quota.resetsAt * 1000 > Date.now();
+    $(`limit-${slot}`).textContent = fresh ? `${label} ${quota.used}% · ${new Date(quota.resetsAt * 1000).toLocaleString('ko-KR')} 초기화` : `${label} 한도 · 새 Codex 기록을 기다리는 중`;
+  }
   [...$('journey').children].forEach((el, i) => {
     el.classList.toggle('active', i <= s.level);
     if (i > 0) el.querySelector('small').textContent = `${fmt(data.targets[i - 1])} tokens`;
   });
   $('count').textContent = data.collection.length;
-  if (data.collection.length) { $('collection').replaceChildren(...data.collection.map(p => { const el = document.createElement('div'); el.className = 'owned'; el.append(image(p.id, p.name)); const label = document.createElement('span'); label.textContent = p.name; el.append(label); return el; })); }
+  if (data.collection.length) { $('collection').replaceChildren(...data.collection.map(p => { const el = document.createElement('div'); el.className = 'owned'; el.append(image(p.id, p.name)); const label = document.createElement('span'); label.textContent = `${p.name} · ♥ ${p.affection ?? 0}`; el.append(label); return el; })); }
 }
 async function request(action) {
   const options = action ? { method: 'POST' } : {};
   try { const response = await fetch(`/api/${action || 'state'}`, options); const data = await response.json(); if (!response.ok) throw Error(data.error); render(data); }
   catch (error) { $('status').textContent = error.message === 'Failed to fetch' ? '앱 연결이 끊겼어요. 실행 파일을 다시 열어 주세요.' : error.message; }
 }
-for (const [id, action] of [['refresh', 'refresh'], ['graduate', 'graduate']]) $(id).onclick = async () => { $(id).disabled = true; try { await request(action); } finally { $(id).disabled = false; } };
+for (const [id, action] of [['refresh', 'refresh'], ['graduate', 'graduate'], ['feed', 'feed']]) $(id).onclick = async () => { $(id).disabled = true; try { await request(action); } finally { if (id !== 'feed') $(id).disabled = false; } };
 request(); setInterval(() => request(), 15000);
